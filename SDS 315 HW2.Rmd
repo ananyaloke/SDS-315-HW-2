@@ -1,0 +1,283 @@
+---
+title: "SDS 315 HW 2"
+author: "Ananya Loke - UT EID: asl3324"
+date: "2025-01-27"
+output: pdf_document
+---
+
+```{r global_options, echo=FALSE}
+knitr::opts_chunk$set(fig.height=7, fig.width=8, warning=FALSE, message = FALSE, tidy=TRUE, echo=FALSE, tidy.opts=list(width.cutoff=60))
+```
+
+
+```{r, echo = FALSE, include=FALSE}
+#loading libraries
+library(tidyverse)
+library(lubridate)
+library(kableExtra)
+library(rvest)
+library(RColorBrewer)
+
+#reading in libraries
+profs <- read_csv("profs.csv")
+bikeshare <- read_csv("bikeshare.csv")
+bikeshare$workingday <- factor(bikeshare$workingday, labels=c('Not Working Day','Working Day'))
+capmetro <- read_csv("capmetro_UT.csv")
+billboard <- read_csv("billboard.csv")
+
+
+# Recode the categorical variables in sensible, rather than alphabetical, order
+capmetro = mutate(capmetro,
+day_of_week = factor(day_of_week,
+levels=c("Mon", "Tue", "Wed","Thu", "Fri", "Sat", "Sun")),
+month = factor(month,
+levels=c("Sep", "Oct","Nov")))
+
+#creating the ggplots
+profs_ggplot <- ggplot(profs)
+bikeshare_ggplot <- ggplot(bikeshare)
+capmetro_ggplot <- ggplot(capmetro)
+billboard_ggplot <- ggplot(billboard)
+
+
+```
+# **Problem 1: Beauty, or not, in the classroom**
+
+#### Part A: 
+
+
+
+
+```{r}
+
+profs_ggplot + geom_histogram(aes(x=eval), bins=30, fill = "lightpink", col="deeppink4") + labs(title = "Course Evaluation Scores Distribution", x = "Course Evaluation Scores on a Scale of 0 to 5", y = "Frequency")
+
+
+```
+
+#### This plot shows histogram that displays the overall data distribution of course evaluation scores. We can see that the data is slightly left-skewed, meaning that the mean is less than the median. A mean around 4 out of 5 is displayed in the plot. 
+
+
+
+
+
+#### Part B: 
+
+
+
+
+
+```{r}
+profs_ggplot + geom_boxplot(aes(x = eval, y = native), fill = "lightpink", col="deeppink4") + labs(title = "Course Evaluation Scores by Native English Speaker", x = "Course Evaluation Scores on a Scale of 0 to 5", y = "Native Speaker")
+
+```
+
+
+#### This plot shows side-by-side boxplots to display the distribution of course evaluation scores by whether or not the professor is a native English speaker. We can see that the median score for a native english speaker is higher than the median for the non-native speaker. 
+
+
+
+#### Part C:
+
+
+
+
+```{r}
+profs_ggplot + geom_histogram(aes(x=eval), bins=20, fill = "lightpink", col="deeppink4") + labs(title = "Course Evaluation Scores Distribution by Gender", x = "Course Evaluation Scores on a Scale of 0 to 5", y = "Frequency") + facet_wrap(~gender)
+```
+
+#### This plot shows a faceted histogram with two rows to compare the distribution of course evaluation scores for male and female instructors. Both are unimodal distributions, but we can see that the male professors generally have a higher score than the female professors. 
+
+
+
+#### Part D:
+
+
+
+
+```{r}
+
+profs_ggplot + geom_point(aes(x=beauty,y=eval), fill = "lightpink", col="deeppink4") + labs(title='Professor Attractiveness by Evaluation Score', x='Attractiveness on a Scale from -2 to 2', y='Course Evaluation Scores on a Scale of 0 to 5')
+
+
+```
+
+#### This plot shows a scatterplot that visualizes the extent to which there may be an association between the professor’s physical attractiveness and their course evaluations. We can see a very weak, positive correlation between the 2 variables. 
+
+
+
+
+# **Problem 2: Bike Sharing**
+
+#### Part A:
+
+
+
+
+```{r}
+
+bikeshare_table = summarize(group_by(bikeshare, hr), avg_total=mean(total))
+
+ggplot(data = bikeshare_table, aes(x = hr, y = avg_total)) + geom_line (col = "deeppink4") + labs(title='Average Bike Rentals by Hour of the Day', x='Hour of the Day', y='Average Number of Bike Rentals')
+
+```
+
+#### This plot shows a line graph displaying the  average hourly bike rentals across all hours of the day. We can see 2 peaks at around hours 8 and 17, showing about when in the day the demand for the bikes are most popular. This information can be helpful for the Capital Bikeshare company as it can tell you both when the most popular times are (possibly to prepare for high demands) as well as when the least popular times are (possibly to pick a time for maintence).  
+
+
+
+
+#### Part B:
+
+```{r}
+
+bikeshare_table = summarize(group_by(bikeshare, hr, workingday), avg_total=mean(total))
+
+
+ggplot(data = bikeshare_table, aes(x = hr, y = avg_total)) + geom_line (col = "deeppink4") + facet_wrap(~workingday) + labs(title='Average Bike Rentals by Hour of the Day', x='Hour of the Day', y='Average Number of Bike Rentals')
+
+
+
+```
+
+#### The plot displays a faceted line graph showing average bike rentals by hour of the day, faceted according to whether it is a working day or not. Using the graph, we can come to the conclusion that the bikes are used, on average, more on working days than non-working days. We can also see that while the working day distribution has 2 peaks, the non-working day only has one peak at around the 18th hour of the day. 
+
+
+#### Part C: 
+
+
+
+
+```{r}
+bikeshare_filter = filter(bikeshare, hr == 9)
+bikeshare_table = summarize(group_by(bikeshare_filter, hr, workingday, weathersit), avg_total=mean(total))
+
+ggplot(data = bikeshare_table, aes(x = weathersit, y = avg_total)) + geom_bar (stat="identity", width=0.5, fill = "lightpink", col="deeppink4") + facet_wrap(~workingday) + labs(title='Average Bike Rentals by Weather Situation', x='Weather Situation on a Scale of 1 - 4', y='Average Number of Bike Rentals')
+
+```
+
+#### This plot shows a faceted bar plot displaying the average ridership during the 9 AM hour by weather situation code, faceted according to whether it is a working day or not. The weather code of 1-4 correlates to how harsh the weather is, with 4 being the most harsh. This graph shows that, as weather conditions become more severe, less average bike rentals occur for both work and non-work days. It is also interesting to note that on a working day, there is very little difference between a weather code of 1 versus 2, indicating that people are willing to rent bikes in slightly harsher weather on workdays. 
+
+
+
+# **Problem 3: Capital Metro UT Ridership**
+
+#### Part A:
+
+
+
+
+```{r}
+capmetro_table1 = summarize(group_by(capmetro, hour_of_day, day_of_week, month), avg_boarding=mean(boarding))
+
+ggplot(data = capmetro_table1, aes(x = hour_of_day, y = avg_boarding, color = month)) + geom_line () + facet_wrap(~day_of_week) + labs(title='Average Number of Boardings by Hour of the Day', x='Hour of the Day', y='Average Number of Boardings') 
+
+
+```
+
+#### The image shows a faceted line graph that plots average boardings by hour of the day, day of week, and month. The graphs show an increased boardership in the weekdays (Mon-Fri) while there are significantly less boarders on the weekend days. We can also see a trend that on each weekday, there is a peak around the same hour of the day (17th hour). Additionally, we can tell that there is little different in the boarder trends between the months of September, October, and November.
+
+
+#### Part B:
+
+
+
+
+
+
+
+```{r}
+
+capmetro_table2 = summarize(group_by(capmetro, hour_of_day, temperature, weekend, boarding), avg_boarding=mean(boarding))
+
+ggplot(data = capmetro_table2, aes(x = temperature, y = boarding, colour = weekend)) + geom_point() + facet_wrap(~hour_of_day) + labs(title='Average Number of Boardings by Hour of the Day', x='Temperature in Degrees F', y='Number of Boardings') 
+
+
+
+
+```
+
+
+
+
+
+#### The graph shows a faceted scatter plot displaying boardings vs. temperature, faceted by hour of the day, and colored according to whether it is a weekday or weekend. We can then see that again, weekdays have a much higher number of boardings. The temperature may not have an effect on the number of boardings. Finally, the early hours of the day have significantly fewer number of boardings as compared to the mid to later hours. 
+
+
+
+
+
+
+# **Problem 4: Wrangling the Billboard Top 100**
+
+
+```{r}
+grouped <- summarize(group_by(billboard, performer, song),count = n(),.groups = 'drop')
+
+grouped <- grouped[order(-grouped$count), ]
+
+top_10_songs <- grouped[1:10, ]
+
+newTab <- kbl(top_10_songs, col.names = c("Performer", "Song", "Count"))
+kable_styling(newTab, bootstrap_options = "striped", full_width = F, position = "left")
+
+
+```
+
+#### Part A:
+
+#### The table displayed shows the top 10 songs that have the highest number of weeks on the billboard top 100. We can see that the maximum number of weeks is 87, with Radioactive by Imagine Dragons taking the spot as the "most popular song." 
+
+
+
+
+
+
+
+
+#### Part B:
+
+
+```{r, fig.height=6, fig.width=7}
+filtered_billboard <- billboard[billboard$year != 1958 & billboard$year != 2021, ]
+
+unique_songs <- aggregate(song ~ year,data = filtered_billboard,FUN = function(x) length(unique(x)))
+
+colnames(unique_songs) <- c("year", "unique_songs")
+
+ggplot(unique_songs, aes(x = year, y = unique_songs)) + geom_line(color = "deeppink4") + labs(title = "Number of Unique Songs by Year", x = "Year", y = "Number of Unique Songs")
+```
+
+
+
+#### The figure displays a line graph that shows the number of unique songs by each year from 1959 to 2020. The graph shows 2 peaks at around 1966 and 2020, which are the years with the most unique songs released. The years 2000 and 2001 are shown to have the least number of unique songs. 
+
+
+
+
+
+
+
+
+
+
+#### Part C:
+
+```{r}
+hits <- aggregate(week ~ performer + song, data = billboard,FUN = length)
+
+hits <- hits[hits$week >= 10, ]
+
+artist_hits <- aggregate(song ~ performer,data = hits,FUN = length)
+
+popular_artists <- artist_hits[artist_hits$song >= 30, ]
+
+colnames(popular_artists) <- c("performer", "hits")
+
+ggplot(popular_artists, aes(x = reorder(performer, -hits), y = hits)) + geom_bar(stat = "identity", fill = "deeppink4") + labs(title = "Artists with at Least 30 Ten-Week Hits",x = "Artist",y = "Number of Ten-Week Hits") + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+```
+
+
+
+#### The figure displays the 19 artists that have had at least 30 songs that were 10-week-hits on the billboard top 100 list as well as how many of these "super-hits" they have had. We can see that Elton John has the most "super-hits" at around 52 while the last 4 artists have the minimum number (30) of these hits. 
