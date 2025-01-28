@@ -5,6 +5,8 @@ date: "2025-01-27"
 output: pdf_document
 ---
 
+#### Click [here](https://github.com/ananyaloke/SDS-315-HW-2) for the Github link to the code!
+
 ```{r global_options, echo=FALSE}
 knitr::opts_chunk$set(fig.height=7, fig.width=8, warning=FALSE, message = FALSE, tidy=TRUE, echo=FALSE, tidy.opts=list(width.cutoff=60))
 ```
